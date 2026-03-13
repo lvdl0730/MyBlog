@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: blog-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: blog_db
+      POSTGRES_USER: blog_user
+      POSTGRES_PASSWORD: 201108xxc
+    ports:
+      - "5432::5432"
+    volumes:
+      - blog_pg_data:/var/lib/postgres/data
+
+  redis:
+    image: redis:7
+    container_name: blog-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - blog_redis_data:/data
+
+volumes:
+  blog_pg_data:
+  blog_redis_data:

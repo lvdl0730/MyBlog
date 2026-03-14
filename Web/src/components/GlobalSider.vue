@@ -181,4 +181,22 @@ const tagCount = ref(8)
   align-items: center;
   gap: 10px;
 }
+
+.app-sider.ant-layout-sider-collapsed .app-sider__logo {
+  padding: 0;
+  justify-content: center;
+}
+
+.app-sider.ant-layout-sider-collapsed .logo-link {
+  justify-content: center;
+}
+
+.app-sider.ant-layout-sider-collapsed .app-sider__stats {
+  padding: 16px 10px;
+}
+
+.app-sider.ant-layout-sider-collapsed .stats-card {
+  justify-content: center;
+  padding: 0;
+}
 </style>

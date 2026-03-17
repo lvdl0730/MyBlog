@@ -95,8 +95,15 @@ const tagCount = ref(8)
 
 <style scoped>
 .app-sider {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1001;
   min-height: 100vh;
   background: #001529;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .app-sider__logo {

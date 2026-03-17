@@ -1,48 +1,159 @@
-import { defineStore } from "pinia"
-import { ref,computed } from 'vue'
+﻿import { computed, ref, watch } from "vue";
+import { defineStore } from "pinia";
 
-// 用户角色类型
-export type UserRole = 'admin' | 'user' | ''
+export type UserRole = "admin" | "user" | "";
 
-// 用户认证状态仓库
-export const useAuthStore = defineStore("auth", ()=>{
-    // 用户昵称/头像地址/当前角色
-    const nickname = ref('游客')
-    const avatar = ref('')
-    const role = ref<UserRole>('')
+interface StoredAuthSession {
+  nickname: string;
+  avatar: string;
+  email: string;
+  role: UserRole;
+}
 
-    // 是否已登录
-    const isLogin = computed(()=> !!role.value)
-    // 是否为管理员
-    const isAdmin = computed(()=> role.value === 'admin')
+interface LoginPayload {
+  account: string;
+  password: string;
+}
 
-    // 模拟管理员登录
-    function mockLoginAsAdmin(){
-        nickname.value = '管理员'
-        avatar.value = ''
-        role.value = 'admin'
-    }
-    // 模拟普通用户登录
-    function mockLoginAsUser(){
-        nickname.value = '普通用户'
-        avatar.value = ''
-        role.value = 'user'
-    }
-    // 退出登录
-    function logout(){
-        nickname.value = '游客'
-        avatar.value = ''
-        role.value = ''
-    }
+interface RegisterPayload {
+  username: string;
+  email: string;
+  password: string;
+}
+
+const AUTH_STORAGE_KEY = "blog-auth-session";
+
+const guestSession: StoredAuthSession = {
+  nickname: "游客",
+  avatar: "",
+  email: "",
+  role: "",
+};
+
+const readStoredSession = (): StoredAuthSession => {
+  if (typeof window === "undefined") return guestSession;
+
+  try {
+    const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!raw) return guestSession;
+    const parsed = JSON.parse(raw) as Partial<StoredAuthSession>;
 
     return {
-        nickname,
-        avatar,
-        role,
-        isLogin,
-        isAdmin,
-        mockLoginAsAdmin,
-        mockLoginAsUser,
-        logout,
-    }
-})
+      nickname: parsed.nickname || guestSession.nickname,
+      avatar: parsed.avatar || "",
+      email: parsed.email || "",
+      role: parsed.role === "admin" || parsed.role === "user" ? parsed.role : "",
+    };
+  } catch {
+    return guestSession;
+  }
+};
+
+const buildNicknameFromAccount = (account: string) => {
+  const base = account.includes("@") ? account.split("@")[0] ?? "" : account;
+  return base.trim().slice(0, 16) || "用户";
+};
+
+const buildEmailFromAccount = (account: string) => {
+  const normalized = account.trim();
+  if (normalized.includes("@")) return normalized;
+  return `${normalized}@example.com`;
+};
+
+export const useAuthStore = defineStore("auth", () => {
+  const initialSession = readStoredSession();
+
+  const nickname = ref(initialSession.nickname);
+  const avatar = ref(initialSession.avatar);
+  const email = ref(initialSession.email);
+  const role = ref<UserRole>(initialSession.role);
+
+  const isLogin = computed(() => !!role.value);
+  const isAdmin = computed(() => role.value === "admin");
+
+  const persistSession = () => {
+    if (typeof window === "undefined") return;
+
+    const payload: StoredAuthSession = {
+      nickname: nickname.value,
+      avatar: avatar.value,
+      email: email.value,
+      role: role.value,
+    };
+
+    window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload));
+  };
+
+  const applySession = (payload: StoredAuthSession) => {
+    nickname.value = payload.nickname;
+    avatar.value = payload.avatar;
+    email.value = payload.email;
+    role.value = payload.role;
+  };
+
+  const login = ({ account }: LoginPayload) => {
+    const normalizedAccount = account.trim();
+    const isAdminAccount = normalizedAccount.toLowerCase().includes("admin");
+    const nextRole: UserRole = isAdminAccount ? "admin" : "user";
+    const nextNickname =
+      isAdminAccount && /^(admin|admin@)/i.test(normalizedAccount)
+        ? "管理员"
+        : buildNicknameFromAccount(normalizedAccount);
+
+    applySession({
+      nickname: nextNickname,
+      avatar: "",
+      email: buildEmailFromAccount(normalizedAccount),
+      role: nextRole,
+    });
+
+    return nextRole;
+  };
+
+  const register = ({ username, email: nextEmail }: RegisterPayload) => {
+    applySession({
+      nickname: username.trim() || "新用户",
+      avatar: "",
+      email: nextEmail.trim(),
+      role: "user",
+    });
+  };
+
+  const mockLoginAsAdmin = () => {
+    applySession({
+      nickname: "管理员",
+      avatar: "",
+      email: "admin@example.com",
+      role: "admin",
+    });
+  };
+
+  const mockLoginAsUser = () => {
+    applySession({
+      nickname: "普通用户",
+      avatar: "",
+      email: "user@example.com",
+      role: "user",
+    });
+  };
+
+  const logout = () => {
+    applySession(guestSession);
+  };
+
+  watch([nickname, avatar, email, role], persistSession, { immediate: true });
+
+  return {
+    nickname,
+    avatar,
+    email,
+    role,
+    isLogin,
+    isAdmin,
+    login,
+    register,
+    mockLoginAsAdmin,
+    mockLoginAsUser,
+    logout,
+  };
+});

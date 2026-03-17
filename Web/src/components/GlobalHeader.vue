@@ -32,19 +32,19 @@ const authStore = useAuthStore();
 
   <div class="app-header__center">
     <!-- 导航栏 -->
-    <RouterLink to="/" class='header-trigger-btn' active-class="is-active" exact-active-class="is-active">
+    <RouterLink to="/" class="header-nav-item" active-class="is-active" exact-active-class="is-active">
       <HomeOutlined />
       <span>首页</span>
     </RouterLink>
-    <RouterLink to="/articles" class='header-nav-item' active-class="is-active">
+    <RouterLink to="/articles" class="header-nav-item" active-class="is-active">
       <FileTextOutlined />
       <span>文章</span>
     </RouterLink>
-    <RouterLink to="/plans" class='header-nav-item' active-class="is-active">
+    <RouterLink to="/plans" class="header-nav-item" active-class="is-active">
       <CalendarOutlined />
       <span>计划</span>
     </RouterLink>
-    <a class="header-nav-item" @click="uiStore.openSearch()">
+    <a class="header-nav-item" :class="{ 'is-active': uiStore.searchModalOpen }" @click="uiStore.openSearch()">
       <SearchOutlined />
       <span>搜索</span>
     </a>
@@ -85,6 +85,11 @@ const authStore = useAuthStore();
 
 <style scoped>
 .app-header {
+  position: fixed;
+  top: 0;
+  left: var(--layout-sider-width, 220px);
+  right: 0;
+  z-index: 1000;
   display: grid;
   grid-template-columns: 240px 1fr 220px;
   align-items: center;
@@ -92,6 +97,9 @@ const authStore = useAuthStore();
   padding: 0 20px;
   background: #ffffff;
   border-bottom: 1px solid #f0f0f0;
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: left 0.2s ease;
 }
 
 .app-header__left {
@@ -104,6 +112,7 @@ const authStore = useAuthStore();
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100%;
   gap: 32px;
 }
 
@@ -129,18 +138,30 @@ const authStore = useAuthStore();
 .header-nav-item {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  align-self: stretch;
   gap: 6px;
+  padding: 0 2px 10px;
+  cursor: pointer;
   color: #595959;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
   text-decoration: none;
-  transition: color 0.2s ease;
+  background-image: linear-gradient(#1677ff, #1677ff);
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: 0 2px;
+  transition: color 0.2s ease, background-size 0.24s ease;
 }
 
-.header-nav-item:hover {
+.header-nav-item:hover,
+.header-nav-item.is-active {
   color: #1677ff;
+  background-size: calc(100% - 8px) 2px;
 }
 
 .header-nav-item.is-active {
-  color: #1677ff;
   font-weight: 600;
 }
 

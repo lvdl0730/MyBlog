@@ -4,7 +4,7 @@ import { useRoute, RouterView, RouterLink } from "vue-router";
 import { SearchOutlined } from "@ant-design/icons-vue";
 import { useUiStore } from "@/stores/ui.ts";
 import GlobalSider from "@/components/GlobalSider.vue";
-import GlobalHeader from "@/components/GlobalHeader.vue";
+import GlobalHeader from "@/components/GlobalHeaderFixed.vue";
 
 const uiStore = useUiStore();
 const route = useRoute();
@@ -28,11 +28,11 @@ const showBreadcrumb = computed(() => {
 </script>
 
 <template>
-  <a-layout class="basic-layout">
+  <a-layout class="basic-layout" :style="{ '--layout-sider-width': uiStore.siderOpen ? '220px' : '80px' }">
     <!-- 侧边栏 -->
     <GlobalSider />
 
-    <a-layout>
+    <a-layout class="basic-layout__main">
       <!-- 顶部栏 -->
       <GlobalHeader />
 
@@ -85,10 +85,17 @@ const showBreadcrumb = computed(() => {
 <style scoped>
 .basic-layout {
   min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.basic-layout__main {
+  min-height: 100vh;
+  margin-left: var(--layout-sider-width);
+  transition: margin-left 0.2s ease;
 }
 
 .basic-layout__content {
-  margin: 16px;
+  margin: 80px 16px 16px;
 }
 
 /* 面包屑容器 */
